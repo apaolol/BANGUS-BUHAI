@@ -1,17 +1,22 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import SQLModel  # 👈 Added this import
 
-from database.db import engine
-from models.tank_profile import TankProfile
+#rememebr to import these routes and models to the main.py file
+from models.tank_profile import TankProfile 
+from models.user_profile import User
 from routes.tank_routes import router as tank_router
+from routes.user_routes import router as user_router
+from routes.waterlog_routes import router as water_log_router
+
+# import db after the features routes and models
+from sqlmodel import SQLModel  
+from database.db import engine
 
 
-
+# note to self this runs the db without it mag 404 or null imo mga http pls make actual notes and shi
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # This runs BEFORE the app starts accepting requests
     SQLModel.metadata.create_all(engine)  #database
     yield
 
@@ -29,6 +34,8 @@ app.add_middleware(
 )
 
 app.include_router(tank_router, prefix="/tanks", tags=["Tanks"])
+app.include_router(water_log_router, prefix="/tanks", tags=["Water Logs"])
+app.include_router(user_router, prefix="/users", tags=["Users"])
 
 
 @app.get("/")
