@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from models.tank_profile import TankProfile
 import services.tank_services as service
 from sqlmodel import Session
@@ -8,7 +8,7 @@ from database.db import get_session
 router = APIRouter()
 
 # create tank profike
-@router.post("/", response_model=TankProfile)
+@router.post("/", response_model=TankProfile, status_code=status.HTTP_201_CREATED)
 def create_tank(tank_profile: TankProfile, db: Session = Depends(get_session)):
     return service.create_tank(tank_profile=tank_profile, db=db)
 

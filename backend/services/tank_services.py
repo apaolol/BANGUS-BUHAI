@@ -9,8 +9,8 @@ def create_tank(tank_profile: TankProfile, db: Session):
 
     db.add(tank_profile)
     db.commit()
-    #db.refresh(tank_profile)
-    return {"message": "Tank Profile Successfully  Added"}
+    db.refresh(tank_profile)
+    return tank_profile
 
 # get all tanks
 def get_all_tanks(
@@ -48,7 +48,7 @@ def update_tank(
     db.commit()
     db.refresh(tank)
 
-    return {"message": "Tank updated successfully!"}
+    return tank
 
 
 def delete_tank(tank_id: int, db: Session):
