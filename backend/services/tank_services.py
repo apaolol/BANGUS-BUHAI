@@ -1,16 +1,18 @@
 from fastapi import HTTPException
-from models.tank_profile import TankProfile
+from models.tank_profile import CreateTankProfile, TankProfile
 from sqlmodel import Session, select
 
 # create tank profike
-def create_tank(tank_profile: TankProfile, db: Session):
+def create_tank(tank_profile: CreateTankProfile, db: Session):
+    # convert CreateTank to db
+    db_tank = TankProfile.model_validate(tank_profile)
     # Logic to create a new tank profile in
-    tank_profile.capacity = tank_profile.volume_ml * 600
+    db_tank.capacity = tank_profile.volume_ml * 600
 
-    db.add(tank_profile)
+    db.add(db_tank)
     db.commit()
-    db.refresh(tank_profile)
-    return tank_profile
+    db.refresh(db_tank)
+    return db_tank
 
 # get all tanks
 def get_all_tanks(
@@ -32,17 +34,18 @@ def view_tank(tank_id: int, db: Session):
 
 #update one tank
 def update_tank(
-    tank_id: int, tank_data: TankProfile, db: Session
+    tank_id: int, tank_data: CreateTankProfile, db: Session
     ):
     # Logic to update an existing tank profile
     tank = db.get(TankProfile, tank_id)
     if not tank:
         raise HTTPException(status_code=404, detail="Tank not Found")
     
-    # update logic
-    for key, val in tank_data.model_dump(exclude={"id", "capacity"}).items():
+    # OLD UPDATE LOGIC
+    #for key, val in tank_data.model_dump(exclude={"id", "capacity"}).items():
         setattr(tank, key, val)
 
+    tank.sqlmodel_update(tank_data.model_dump(exclude_unset=True))
     tank.capacity = tank.volume_ml * 600
 
     db.commit()

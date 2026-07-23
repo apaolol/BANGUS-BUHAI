@@ -1,14 +1,16 @@
 from fastapi import HTTPException
-from models.user_profile import User
+from models.user_profile import CreateUser, User
 from sqlmodel import Session, select
 
 # create
-def create_user(user: User, db: Session):
+def create_user(user: CreateUser, db: Session):
+    #set create to dbmodel
+    db_user = User.model_validate(user)
     # Logic to create a new user in the
-    db.add(user)
+    db.add(db_user)
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(db_user)
+    return db_user
 
 # read all
 def get_all_users(db: Session, skip: int = 0, limit: int = 10):
@@ -22,17 +24,20 @@ def get_all_users(db: Session, skip: int = 0, limit: int = 10):
 def get_user(id: int, db: Session):
     user = db.get(User, id)
     if not user:
-        raise HTTPException(status_code=404, details="User Not Found")
+        raise HTTPException(status_code=404, detail="User Not Found")
     return user
 
 # update user
-def update_user(id: int, user_data: User, db: Session):
+def update_user(id: int, user_data: CreateUser, db: Session):
     user = db.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="User Not Found")
     
-    for key, val in user_data.model_dump(exclude={"id"}).items():
-        setattr(user, key, val)
+    # old logic
+    #for key, val in user_data.model_dump(exclude={"id"}).items():
+        #setattr(user, key, val)
+    
+    user.sqlmodel_update(user_data.model_dump(exclude_unset=True))
     db.commit()
     db.refresh(user)
     return user
